@@ -1,0 +1,29 @@
+.container {
+    /* Take up 100% of the parent div's space */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1a1a1a;
+
+    /* Keeps the video from spilling out if the parent has rounded corners */
+    overflow: hidden;
+}
+
+.videoFeed {
+    width: 100%;
+    height: 100%;
+    /* cover ensures the video fills the box without distorting/stretching */
+    object-fit: cover;
+    transform: scaleX(-1);
+    /* Mirrors the webcam */
+}
+
+.error {
+    color: #ff6b6b;
+    font-family: 'Inter', sans-serif;
+    text-align: center;
+    padding: 1rem;
+    font-weight: 500;
+}

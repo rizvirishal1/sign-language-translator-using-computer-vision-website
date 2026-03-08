@@ -1,0 +1,133 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+/* 
+  Grid is the secret weapon here:
+  1fr (left text) | auto (button) | 1fr (right text)
+  Because the left and right are equal fractions, the button never moves.
+*/
+.gridWrapper {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    /* Enforces exactly a 20px gap from the button */
+    align-items: center;
+    width: 100%;
+    max-width: 450px;
+    /* Prevents them from spreading across the whole screen */
+}
+
+/* Push the left text to the right edge of its container (against the gap) */
+.leftCol {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Push the right text to the left edge of its container (against the gap) */
+.rightCol {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.animatedText {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* --- ANIMATION LOGIC --- */
+
+/* 1. Animating Out (Disappearing) */
+.out {
+    .leftElement {
+        animation: slideOutUp 0.4s ease forwards;
+    }
+
+    .rightElement {
+        animation: slideOutDown 0.4s ease forwards;
+    }
+}
+
+/* 2. Animating In (Reappearing from the opposite side) */
+.in {
+    .leftElement {
+        animation: slideInUp 0.4s ease forwards;
+        /* Slides up from bottom */
+    }
+
+    .rightElement {
+        animation: slideInDown 0.4s ease forwards;
+        /* Slides down from top */
+    }
+}
+
+/* Keyframes for the 4 directional movements */
+@keyframes slideOutUp {
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideOutDown {
+    to {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* --- TOGGLE BUTTON --- */
+.toggleBtn {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s ease, transform 0.4s ease;
+    /* Matches the 400ms duration */
+
+    &:hover {
+        background: #e0e0e0;
+    }
+
+    .icon {
+        width: 24px;
+        height: 24px;
+        color: #333;
+    }
+}
+
+.rotated {
+    transform: rotate(180deg);
+}

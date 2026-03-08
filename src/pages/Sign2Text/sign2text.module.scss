@@ -1,0 +1,71 @@
+.camera {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    height: 80vh;
+    width: 50vw;
+    background-color: white;
+    border-radius: 20px;
+
+}
+
+
+.title {
+    display: flex;
+    gap: 20px;
+}
+
+.horizontalContainer {
+    display: flex;
+    gap: 20px;
+
+}
+
+.translateBtn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.languageTranslation {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.translatedText {
+    border: 2px dashed white;
+    padding: 10px;
+    margin-top: 10px;
+    height: 60vh;
+    width: 35vw;
+}
+
+.speakButton {
+
+
+    .speakBtn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+    }
+}

@@ -1,0 +1,31 @@
+.horizontalContainer {
+    display: flex;
+    gap: 20px;
+}
+
+.textInput {
+    padding: 10px;
+    margin-top: 10px;
+    height: 50vh;
+    width: 25vw;
+    background-color: black;
+    color: white;
+    font-size: large;
+}
+
+.inputContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 50px;
+
+    button {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+}
