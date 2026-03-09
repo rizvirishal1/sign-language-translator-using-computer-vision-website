@@ -6,11 +6,13 @@
 .textInput {
     padding: 10px;
     margin-top: 10px;
-    height: 50vh;
+    height: 30vh;
     width: 25vw;
     background-color: black;
     color: white;
     font-size: large;
+    box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.5);
+    border: 2px solid rgba(0, 255, 65, 0.4);
 }
 
 .inputContainer {
@@ -27,5 +29,23 @@
         border-radius: 5px;
         cursor: pointer;
         font-size: 16px;
+    }
+}
+
+.glossBox {
+    color: #DA70D6;
+    border-radius: 5px;
+    margin-top: 10px;
+    height: 20vh;
+    border: 1px solid white;
+    padding: 10px;
+
+
+    h3 {
+        color: #00FF41;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+        text-decoration: underline;
+        margin-top: 0px;
     }
 }

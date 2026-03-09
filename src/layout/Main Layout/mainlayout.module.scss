@@ -22,6 +22,11 @@
 .title {
     display: flex;
     gap: 20px;
+    background: linear-gradient(to bottom, rgb(126, 24, 126), rgb(0, 0, 0));
+    width: 100%;
+    justify-content: center;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
 }
 
 .horizontalContainer {

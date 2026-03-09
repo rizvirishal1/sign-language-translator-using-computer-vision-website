@@ -1,0 +1,7 @@
+@font-face {
+    font-family: 'Micro 5';
+    src: url('./assets/fonts/Micro5-Regular.ttf') format('truetype');
+    font-weight: normal;
+    /* Adjust this if you downloaded a specific weight */
+    font-style: normal;
+}

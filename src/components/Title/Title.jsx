@@ -19,10 +19,10 @@ const Title = () => {
         if (location.pathname === '/text2sign') {
             setIsSwapped(true);
             setLeftText("Text");
-            setRightText("Sign Language");
+            setRightText("Sign");
         } else {
             setIsSwapped(false);
-            setLeftText("Sign Language");
+            setLeftText("Sign");
             setRightText("Text");
         }
     }, [location.pathname]);
@@ -43,10 +43,10 @@ const Title = () => {
             // Update the text based on the new state
             if (!isSwapped) {
                 setLeftText("Text");
-                setRightText("Sign Language");
+                setRightText("Sign");
                 navigate('/text2sign');
             } else {
-                setLeftText("Sign Language");
+                setLeftText("Sign");
                 setRightText("Text");
                 navigate('/sign2text');
             }

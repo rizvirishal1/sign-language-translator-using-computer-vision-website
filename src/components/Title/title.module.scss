@@ -36,8 +36,13 @@
 
 .animatedText {
     display: inline-block;
-    font-size: 1.5rem;
+    font-size: 35px;
     font-weight: 600;
+    background: linear-gradient(135deg, lime 0%, aqua 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
 }
 
 /* --- ANIMATION LOGIC --- */
