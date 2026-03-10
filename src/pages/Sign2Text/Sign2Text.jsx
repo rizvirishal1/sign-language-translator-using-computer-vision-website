@@ -3,6 +3,7 @@ import Camera from "../../components/Camera/Camera.jsx";
 import LanguageSelector from "../../components/LanguageSelector/TranslateBtn.jsx";
 import { SpeakerWaveIcon } from "@heroicons/react/24/solid";
 import { useState, useEffect, useRef } from "react";
+import StatusBar from "../../components/StatusBar/StatusBar.jsx";
 //styles
 import styles from "./sign2text.module.scss"
 
@@ -58,6 +59,12 @@ export default function Sign2Text() {
                         >
                             Dynamic
                         </button>
+                        <div className={styles.ringStatusBar}>
+                            <StatusBar />
+                        </div>
+                        <span>Word/letter</span>
+                        <span> Confidence</span>
+
                         <div className={styles.fpsCounter}>
                             <p>{fps} FPS</p>
                         </div>
@@ -79,6 +86,10 @@ export default function Sign2Text() {
                         <button className={styles.speakBtn} title="Speak">
                             <SpeakerWaveIcon className={styles.icon} /> Speak
                         </button>
+                    </div>
+                    <div className={styles.glossBox}>
+                        <h3>Gloss:</h3>
+                        <p>Gloss will appear here.</p>
                     </div>
                 </div>
             </div>

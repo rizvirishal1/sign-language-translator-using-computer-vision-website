@@ -11,7 +11,7 @@
 
     .cameraHeader {
         background-color: #000000;
-        height: 60px;
+        height: 70px;
         border-radius: 10px;
         width: 98%;
         position: absolute;
@@ -93,11 +93,14 @@
 }
 
 .translatedText {
-    border: 2px dashed white;
+    border: 2px solid #007BFF;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.6);
     padding: 10px;
     margin-top: 10px;
-    height: 60vh;
+    height: 30vh;
     width: 35vw;
+    color: white;
+    font-size: 24px;
 }
 
 .speakButton {
@@ -133,4 +136,13 @@
         font-size: 45px;
         font-family: 'Micro 5', sans-serif;
     }
+}
+
+.glossBox {
+    color: #DA70D6;
+    border-radius: 5px;
+    margin-top: 10px;
+    height: 20vh;
+    border: 1px solid white;
+    padding: 10px;
 }

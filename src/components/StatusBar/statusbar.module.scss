@@ -1,0 +1,60 @@
+// Main colors based on the generated reference image
+$glow-cyan: #00ffff;
+$ring-core: #b2ffff; // A lighter inner core to maximize brightness
+$track-color: #222222; // Very dark grey/black track
+
+.container {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.svgWrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.track {
+    stroke: $track-color;
+}
+
+.ring {
+    stroke: $ring-core;
+    stroke-linecap: square;
+
+    /* CRITICAL CHANGE FOR MINIMAL GLOW:
+    The previous filter had three stacked drop-shadows with large standard deviations (4px, 12px, 20px).
+    
+    Replace that with a single shadow with a VERY small standard deviation (e.g., 1.5px) and maybe slightly reduced opacity.
+  */
+    // filter: drop-shadow(0 0 4px $glow-cyan) drop-shadow(0 0 12px $glow-cyan) drop-shadow(0 0 20px $glow-cyan); // Original (removed)
+    filter: drop-shadow(0 0 1.5px rgba($glow-cyan, 0.8)); // Minimal, tight glow
+
+    // Inherit circumference from JSX
+    stroke-dasharray: var(--circumference);
+
+    // Applies the continuous looping animation
+    animation: loopFill 2s linear infinite;
+}
+
+/* Defines the 0% (0 deg) to 100% (360 deg) loop animation.
+  By going from dashoffset = circumference to 0, 
+  the ring fills clockwise.
+*/
+@keyframes loopFill {
+    0% {
+        // 0% complete (fully offset)
+        stroke-dashoffset: var(--circumference);
+    }
+
+    99.9% {
+        // Almost complete, creating smooth continuity before snapping back to empty
+        stroke-dashoffset: 0;
+    }
+
+    100% {
+        // Reset back to empty to start the loop over instantly
+        stroke-dashoffset: var(--circumference);
+    }
+}
