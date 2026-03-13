@@ -146,3 +146,19 @@
     border: 1px solid white;
     padding: 10px;
 }
+
+.modeBtn{
+    background-color: transparent;
+    color: violet;
+
+}
+
+.modeBtnActive{
+    background-color: green;
+    color: white;
+}
+
+.modeBtnGrup{
+    display: flex;
+    gap: 10px;
+}
