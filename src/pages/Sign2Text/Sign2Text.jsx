@@ -9,7 +9,7 @@ import styles from "./sign2text.module.scss"
 
 export default function Sign2Text() {
     const [isDynamic, setIsDynamic] = useState(false);
-    const [mode,setMode] = useState("mode A")
+    const [mode, setMode] = useState("mode A")
     const [fps, setFps] = useState(0);
     const requestRef = useRef();
     const frameCount = useRef(0);
@@ -44,34 +44,34 @@ export default function Sign2Text() {
         setIsDynamic(mode === 'dynamic');
     };
 
-    const handleToggleMainMode = (mode) =>{
-        setMode(mode)
+    const handleToggleMainMode = (mainMode) => {
+        setMode(mainMode)
     }
-    
+
 
     return (
         <div className={styles.sign2text}>
             <div className={styles.horizontalContainer}>
                 <div className={styles.camera}>
                     <div className={styles.cameraHeader}>
-                        {mode == "mode A" &&(<div className={styles.modeBtnGrup}>
+                        {mode == "mode A" && (<div className={styles.modeBtnGrup}>
                             <button
-                            className={`${styles.staticBtn} ${!isDynamic ? styles.staticBtnSelected : ''}`} onClick={() => handleModeToggle('static')}
-                        >
-                            Static
-                        </button>
-                        <button
-                            className={`${styles.dynamicBtn} ${isDynamic ? styles.dynamicBtnSelected : ''}`}
-                            onClick={() => handleModeToggle('dynamic')}
-                        >
-                            Dynamic
-                        </button>
+                                className={`${styles.staticBtn} ${!isDynamic ? styles.staticBtnSelected : ''}`} onClick={() => handleModeToggle('static')}
+                            >
+                                Static
+                            </button>
+                            <button
+                                className={`${styles.dynamicBtn} ${isDynamic ? styles.dynamicBtnSelected : ''}`}
+                                onClick={() => handleModeToggle('dynamic')}
+                            >
+                                Dynamic
+                            </button>
                         </div>)}
-                        
+
                         {isDynamic &&
-                        <div className={styles.ringStatusBar}>
-                            <StatusBar />
-                        </div>
+                            <div className={styles.ringStatusBar}>
+                                <StatusBar />
+                            </div>
                         }
                         <span>Word/letter</span>
                         <span> Confidence</span>
@@ -83,23 +83,29 @@ export default function Sign2Text() {
                     <Camera />
                 </div>
                 <div className={styles.rightGrid}>
+                    <div className={styles.mainModelSelection}>
+                        <span>Select the Mode</span>
+                        <div className={styles.mainModeBtnGroup}>
+                            <button
+                                className={`${styles.mainModeBtn} ${mode == "mode A" ? styles.mainModeBtnActive : ''}`}
+                                onClick={() => { handleToggleMainMode("mode A") }}
+
+                            >
+                                Mode A - Static & Dynamic
+                            </button>
+                            <button
+                                className={`${styles.mainModeBtn} ${mode == "mode B" ? styles.mainModeBtnActive : ''}`}
+                                onClick={() => { handleToggleMainMode("mode B") }}
+                            >
+                                Mode B - Dynamic Only
+                            </button>
+                        </div>
+
+                    </div>
                     <div className={styles.languageTranslation}>
                         <LanguageSelector />
 
                         <button className={styles.translateBtn}>Translate</button>
-                        <button 
-                        className={`${styles.modeBtn} ${mode == "mode A" ? styles.modeBtnActive : ''}`}
-                        onClick={()=>{handleToggleMainMode("mode A")}}
-
-                        >
-                            Mode A - Static & Dynamic
-                        </button>
-                        <button 
-                        className={`${styles.modeBtn} ${mode == "mode B" ? styles.modeBtnActive : ''}`}
-                        onClick={()=>{handleToggleMainMode("mode B")}}
-                        >
-                            Mode B - Dynamic Only
-                        </button>
                     </div>
                     <div className={styles.translatedText}>
                         <p>Translated text will appear here.</p>

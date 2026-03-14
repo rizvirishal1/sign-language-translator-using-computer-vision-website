@@ -11,7 +11,7 @@
     background-color: black;
     color: white;
     font-size: large;
-    box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.5);
+    box-shadow: inset 0 0 5px rgba(0, 255, 65, 0.3), 0 0 20px rgba(0, 255, 65, 0.5);
     border: 2px solid rgba(0, 255, 65, 0.4);
 }
 
@@ -21,7 +21,7 @@
     gap: 10px;
     margin-bottom: 50px;
 
-    button {
+    .translateBtn {
         background-color: #007BFF;
         color: white;
         border: none;
@@ -47,5 +47,49 @@
         letter-spacing: 2px;
         text-decoration: underline;
         margin-top: 0px;
+    }
+}
+
+.replayBtn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+
+    .icon {
+        width: 24px;
+        height: 24px;
+        color: white;
+    }
+}
+
+.videoBox {
+    height: 70vh;
+}
+
+.speakBtn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+
+    .icon {
+        width: 24px;
+        height: 24px;
+        color: white;
     }
 }
