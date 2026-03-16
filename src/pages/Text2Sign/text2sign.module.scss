@@ -71,7 +71,34 @@
 }
 
 .videoBox {
-    height: 70vh;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 25vw;
+    height: 500px;
+
+    .mediaWrapper {
+        width: 100%;
+        height: 100%;
+        transition: opacity 0.4s ease-in-out; // Controls the fade speed
+
+        img,
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .fadeIn {
+        opacity: 1;
+    }
+
+    .fadeOut {
+        opacity: 0;
+    }
 }
 
 .speakBtn {
