@@ -146,26 +146,56 @@ export default function Text2Sign() {
     };
 
     const handleTranslate = () => {
-        if (!transcript.trim()) return;
-        setWordsArray([]); // Clear current
+    if (!transcript.trim()) return;
+    setWordsArray([]); // Clear current
 
-        const cleanedWords = transcript.toUpperCase().replace(/[.,!?]/g, '').split(/\s+/).filter(Boolean);
-        const playlist = [];
+    let tempTranscript = transcript.toUpperCase().replace(/[.,!?]/g, '').trim();
+    const playlist = [];
 
-        for (const word of cleanedWords) {
+    // 1. Get all dictionary keys and sort by length (descending) 
+    // This ensures "HOW ARE YOU" matches before "HOW"
+    const phraseKeys = Object.keys(signDictionary)
+        .filter(key => key.includes(' '))
+        .sort((a, b) => b.length - a.length);
+
+    // 2. Identify phrases in the string
+    // We split by spaces but we need to check if consecutive words form a phrase
+    const words = tempTranscript.split(/\s+/).filter(Boolean);
+    
+    for (let i = 0; i < words.length; i++) {
+        let foundPhrase = false;
+
+        // Look ahead for potential multi-word phrases
+        for (const phrase of phraseKeys) {
+            const phraseWords = phrase.split(' ');
+            const lookAhead = words.slice(i, i + phraseWords.length).join(' ');
+
+            if (lookAhead === phrase) {
+                playlist.push({ text: phrase, type: signDictionary[phrase] });
+                i += phraseWords.length - 1; // Skip the words we just matched
+                foundPhrase = true;
+                break;
+            }
+        }
+
+        if (!foundPhrase) {
+            const word = words[i];
+            // 3. Check for single word match
             if (signDictionary[word]) {
                 playlist.push({ text: word, type: signDictionary[word] });
             } else {
+                // 4. Fallback to fingerspelling
                 for (const letter of word.split('')) {
                     playlist.push({ text: letter, type: signDictionary[letter] || 'webp' });
                 }
             }
         }
+    }
 
-        setWordsArray(playlist);
-        setCurrentIndex(0);
-        setFade(true); // Trigger fade in for first item
-    };
+    setWordsArray(playlist);
+    setCurrentIndex(0);
+    setFade(true); // Trigger fade in for first item
+};
 
     // Control the transition logic
     useEffect(() => {
