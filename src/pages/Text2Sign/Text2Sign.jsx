@@ -63,7 +63,7 @@ const signDictionary = {
     'HE': 'webm',
     'HEARING': 'webm',
     'HELLO': 'webm',
-    'HOW ARE YOU': 'webm',
+    'HOW YOU': 'webm',
     'HOW': 'webm',
     'HUNGRY': 'webm',
     'I AM FINE': 'webm',
@@ -109,6 +109,33 @@ const signDictionary = {
     'YES': 'webm'
 };
 
+const wordsToExclude = ['A', 
+    'AN',
+    'AND',
+    'ARE',
+    'AS',
+    'AT',
+    'BE',
+    'BY',
+    'FOR',
+    'IF',
+    'IN',
+    'IS',
+    'IT',
+    'OF',
+    'ON',
+    'OR',
+    'THE',
+    'TO',
+    'WITH',
+    'WERE',
+    'WAS',
+    'HAVE',
+    'HAS',
+    'DO',
+    'DID',
+];
+
 export default function Text2Sign() {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');
@@ -150,6 +177,15 @@ export default function Text2Sign() {
     setWordsArray([]); // Clear current
 
     let tempTranscript = transcript.toUpperCase().replace(/[.,!?]/g, '').trim();
+    // Replace anything that is NOT a letter (a-z, A-Z) or a whitespace (\s) with an empty string
+    tempTranscript = tempTranscript.replace(/[^a-zA-Z\s]/g, "");
+
+    // 2. Split the string, filter out the unwanted words, and join it back
+    tempTranscript = tempTranscript
+  .split(/\s+/) // Splits the sentence into an array of individual words
+  .filter(word => !wordsToExclude.includes(word.toUpperCase())) // Keeps only the words NOT in your list
+  .join(" "); // Glues the remaining words back together with a single space
+
     const playlist = [];
 
     // 1. Get all dictionary keys and sort by length (descending) 
