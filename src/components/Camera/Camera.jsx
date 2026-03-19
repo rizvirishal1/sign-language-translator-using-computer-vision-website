@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
 import styles from "./camera.module.scss";
 
 const FLASK_BASE = "http://localhost:5000";
-const STATE_POLL_MS = 500; // Throttled to 2 times a second
-const FRAME_POLL_MS = 120; // ~8 FPS (Increase to 200+ if hardware still struggles)
+const FRAME_RATE_MS = 100; // 10 FPS sent to backend. Video remains smooth 60 FPS locally!
 
 export default function Camera() {
   const [state, setState] = useState({
@@ -13,67 +13,74 @@ export default function Camera() {
     translation: "",
     lang_name: "English",
   });
+  
   const [connected, setConnected] = useState(false);
-  const [frameSrc, setFrameSrc] = useState("");
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const socketRef = useRef(null);
 
-  // ── Poll /state JSON ──────────────────────────────────────────
   useEffect(() => {
-    let alive = true;
-    const poll = async () => {
-      try {
-        const res = await fetch(`${FLASK_BASE}/state`, { cache: "no-store" });
-        if (!res.ok) throw new Error(`state ${res.status}`);
-        const data = await res.json();
-        if (alive) { 
-          setState(data); 
-          setConnected(true); 
-        }
-      } catch (e) {
-        if (alive) setConnected(false);
-      }
-    };
-    poll();
-    const id = setInterval(poll, STATE_POLL_MS);
-    return () => { alive = false; clearInterval(id); };
-  }, []);
+    // 1. Initialize WebSocket Connection
+    socketRef.current = io(FLASK_BASE);
+    
+    socketRef.current.on('connect', () => setConnected(true));
+    socketRef.current.on('disconnect', () => setConnected(false));
+    socketRef.current.on('state_update', (data) => setState(data));
 
-  // ── Controlled Frame Rate Fetcher ──────────────────────────────
-  useEffect(() => {
-    let active = true;
-    let timerId;
-
-    const fetchFrame = async () => {
-      if (!active) return;
-      try {
-        const res = await fetch(`${FLASK_BASE}/latest_frame?t=${Date.now()}`);
-        if (res.ok) {
-          const blob = await res.blob();
-          
-          // Only process if it's a real image frame
-          if (blob.size > 100) {
-            // Convert Blob to Base64 automatically
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              // reader.result is a stable base64 string that React can render safely
-              if (active) setFrameSrc(reader.result);
-            };
-            reader.readAsDataURL(blob);
-          }
+    // 2. Request Camera Permissions and start local stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
         }
-      } catch (e) {
-        // Silently ignore network errors to prevent console spam
+      })
+      .catch((err) => console.error("Camera access denied:", err));
+
+    // 3. Extract frames and send to backend loop
+    const frameInterval = setInterval(() => {
+      if (videoRef.current && canvasRef.current && socketRef.current?.connected) {
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+        
+        // Draw the current video frame onto the canvas
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        
+        // Compress as JPEG and send to Socket.IO
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        socketRef.current.emit('process_frame', { image: imageDataUrl });
       }
+    }, FRAME_RATE_MS);
+
+    // 4. Global Keyboard Listeners for Controls
+    const handleKeyDown = (e) => {
+      // Prevent interactions if typing in an input field somewhere else
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       
-      if (active) {
-        timerId = setTimeout(fetchFrame, FRAME_POLL_MS);
+      const key = e.key.toLowerCase();
+      
+      if (['1','2','3','4','5','6','7','8','9','a','b'].includes(key)) {
+        socketRef.current.emit('control', { action: 'lang', value: key });
+      } else if (key === 'c') {
+        socketRef.current.emit('control', { action: 'clear' });
+      } else if (key === 'backspace') {
+        socketRef.current.emit('control', { action: 'backspace' });
+      } else if (key === ' ') {
+        e.preventDefault(); // Stop page scrolling
+        socketRef.current.emit('control', { action: 'speak' });
       }
     };
+    
+    window.addEventListener('keydown', handleKeyDown);
 
-    fetchFrame();
-
+    // Cleanup on unmount
     return () => {
-      active = false;
-      clearTimeout(timerId);
+      clearInterval(frameInterval);
+      socketRef.current?.disconnect();
+      window.removeEventListener('keydown', handleKeyDown);
+      // Stop webcam tracks
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
@@ -83,38 +90,29 @@ export default function Camera() {
 
   return (
     <div className={styles.wrapper}>
+      {/* Hidden Canvas used for image extraction */}
+      <canvas ref={canvasRef} width="640" height="480" style={{ display: "none" }} />
 
       {/* Header */}
       <div className={styles.header}>
         <span className={styles.title}>Sign Language Recognition</span>
         <span className={`${styles.badge} ${connected ? styles.online : styles.offline}`}>
-          {connected ? "● Live" : "○ Offline"}
+          {connected ? "● Live API" : "○ API Offline"}
         </span>
-      </div>
-
-      {/* Debug bar */}
-      <div className={styles.debugBar}>
-        🔍 {connected ? `Connected. Frame Throttle: ${FRAME_POLL_MS}ms` : "Waiting for backend connection..."}
       </div>
 
       {/* Video Container */}
       <div className={styles.videoContainer}>
-        {(!connected || !frameSrc) && (
-          <div className={styles.placeholder}>
-            <div className={styles.spinner} />
-            <p>Waiting for camera feed…</p>
-          </div>
-        )}
-        
-        {frameSrc && (
-          <img
-            src={frameSrc}
-            alt="camera feed"
-            className={styles.videoFeed}
-            // Notice: The key attribute is REMOVED so it stops flickering/turning black!
-            style={{ display: connected ? "block" : "none" }}
-          />
-        )}
+        {/* We use a native HTML5 video element now. 
+            transform: scaleX(-1) mirrors the video like a webcam app usually does. */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className={styles.videoFeed}
+          style={{ transform: "scaleX(-1)", width: "100%", height: "auto" }}
+        />
       </div>
 
       {/* Stats */}
@@ -168,7 +166,6 @@ export default function Camera() {
         <span>Backspace = Delete</span>
         <span>Space = Speak</span>
         <span>1–9 / a–b = Language</span>
-        <span>Q / Esc = Quit</span>
       </div>
     </div>
   );
