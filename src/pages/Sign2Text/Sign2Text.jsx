@@ -6,79 +6,88 @@ import StatusBar from "../../components/StatusBar/StatusBar.jsx";
 import styles from "./sign2text.module.scss";
 
 // ── Build lookup maps from the LANGUAGES registry ─────────────────
-// key digit → language code   e.g. "1" → "en"
 const KEY_TO_CODE = Object.fromEntries(LANGUAGES.map((l) => [l.key, l.code]));
-// language code → display name  e.g. "ml" → "Malayalam"
 const CODE_TO_NAME = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.name]));
-// language code → BCP-47 tag for Web Speech API  e.g. "hi" → "hi-IN"
 const CODE_TO_TTS = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.ttsLang]));
 
-// ── Google Translate (unofficial, no API key) ─────────────────────
-// Uses the same public endpoint as translate.google.com.
-// Returns a clean single-word / short-phrase translation — far more
-// accurate than MyMemory for Indian languages (ml, hi, ta, te, ar…).
-//
-// Language codes that differ from our internal codes:
 const GT_CODE_MAP = {
-    zh: "zh-CN",   // MyMemory uses "zh", Google needs "zh-CN"
+    zh: "zh-CN", 
 };
 
+/**
+ * Robust Translation Function
+ * Layer 1: Google Translate (Unofficial)
+ * Layer 2: MyMemory API (Fallback for better reliability with Indic languages)
+ */
 async function translateText(word, targetCode) {
     if (!word || targetCode === "en") return word;
 
     const gtLang = GT_CODE_MAP[targetCode] ?? targetCode;
-    const url =
-        `https://translate.googleapis.com/translate_a/single` +
-        `?client=gtx&sl=en&tl=${gtLang}&dt=t&q=${encodeURIComponent(word)}`;
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // --- Attempt 1: Google Translate (Primary) ---
+    try {
+        const googleUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${gtLang}&dt=t&q=${encodeURIComponent(word)}`;
+        const res = await fetch(googleUrl);
+        if (res.ok) {
+            const data = await res.json();
+            const translated = data?.[0]?.map((chunk) => chunk?.[0]).filter(Boolean).join("").trim();
+            if (translated && translated.toLowerCase() !== word.toLowerCase()) {
+                return translated;
+            }
+        }
+    } catch (err) {
+        console.warn("[Google Translate Error]", err);
+    }
 
-    const data = await res.json();
-    // Response shape: [ [ ["translated","original",…], … ], … ]
-    const translated = data?.[0]
-        ?.map((chunk) => chunk?.[0])
-        .filter(Boolean)
-        .join("")
-        .trim();
+    // --- Attempt 2: MyMemory API (Secondary Fallback) ---
+    // Excellent for Malayalam (ml), Tamil (ta), Hindi (hi), etc.
+    try {
+        const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|${targetCode}`;
+        const res = await fetch(myMemoryUrl);
+        if (res.ok) {
+            const data = await res.json();
+            const translated = data.responseData?.translatedText;
+            if (translated && !translated.includes("MYMEMORY WARNING")) {
+                return translated;
+            }
+        }
+    } catch (err) {
+        console.warn("[MyMemory Error]", err);
+    }
 
-    return translated || word;   // fallback: show original
+    return word; // Ultimate fallback: return original English word
 }
 
 // ── Web Speech API TTS helper ──────────────────────────────────────
 function speakText(text, langCode) {
     if (!text || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();                   // stop any current speech
-    const utt  = new SpeechSynthesisUtterance(text);
-    utt.lang   = CODE_TO_TTS[langCode] ?? "en-US";
-    utt.rate   = 0.95;
-    utt.pitch  = 1.0;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = CODE_TO_TTS[langCode] ?? "en-US";
+    utt.rate = 0.95;
+    utt.pitch = 1.0;
     window.speechSynthesis.speak(utt);
 }
 
-// ──────────────────────────────────────────────────────────────────
-
 export default function Sign2Text() {
-    const [isDynamic,       setIsDynamic]       = useState(false);
-    const [mode,            setMode]            = useState("mode A");
-    const [fps,             setFps]             = useState(0);
-    const [selectedLang,    setSelectedLang]    = useState("en");   // language code
-    const [translation,     setTranslation]     = useState("");
-    const [isTranslating,   setIsTranslating]   = useState(false);
+    const [isDynamic, setIsDynamic] = useState(false);
+    const [mode, setMode] = useState("mode A");
+    const [fps, setFps] = useState(0);
+    const [selectedLang, setSelectedLang] = useState("en");
+    const [translation, setTranslation] = useState("");
+    const [isTranslating, setIsTranslating] = useState(false);
 
-    // cameraState holds { letter, confidence, word } from the backend
     const [cameraState, setCameraState] = useState({
-        letter:     "",
+        letter: "",
         confidence: 0,
-        word:       "",
+        word: "",
     });
 
-    // Shared socket ref — passed into Camera so Sign2Text can also emit controls
-    const socketRef    = useRef(null);
-    const requestRef   = useRef();
-    const frameCount   = useRef(0);
-    const lastTime     = useRef(performance.now());
-    const translateRef = useRef(null);  // debounce timer handle
+    const socketRef = useRef(null);
+    const requestRef = useRef();
+    const frameCount = useRef(0);
+    const lastTime = useRef(performance.now());
+    const translateRef = useRef(null);
 
     // ── FPS counter ──────────────────────────────────────────────
     useEffect(() => {
@@ -88,7 +97,7 @@ export default function Sign2Text() {
             if (now - lastTime.current >= 1000) {
                 setFps(frameCount.current);
                 frameCount.current = 0;
-                lastTime.current   = now;
+                lastTime.current = now;
             }
             requestRef.current = requestAnimationFrame(tick);
         };
@@ -96,7 +105,7 @@ export default function Sign2Text() {
         return () => cancelAnimationFrame(requestRef.current);
     }, []);
 
-    // ── Auto-translate whenever word or selected language changes ─
+    // ── Auto-translate Logic ─────────────────────────────────────
     useEffect(() => {
         const word = cameraState.word;
 
@@ -112,41 +121,30 @@ export default function Sign2Text() {
             return;
         }
 
-        // Debounce: wait 350 ms after the last keystroke / letter append
+        // Debounce: Wait 400ms after user stops "signing" to translate
         clearTimeout(translateRef.current);
         setIsTranslating(true);
 
         translateRef.current = setTimeout(async () => {
-            try {
-                const result = await translateText(word, selectedLang);
-                setTranslation(result);
-            } catch (err) {
-                console.warn("[Translation error]", err);
-                setTranslation(word);  // fallback: show original
-            } finally {
-                setIsTranslating(false);
-            }
-        }, 350);
+            const result = await translateText(word, selectedLang);
+            setTranslation(result);
+            setIsTranslating(false);
+        }, 400);
 
         return () => clearTimeout(translateRef.current);
     }, [cameraState.word, selectedLang]);
 
     // ── Keyboard shortcuts ────────────────────────────────────────
-    // Language: 1–8 (maps via KEY_TO_CODE)
-    // Speak:    Space
-    // Clear / Backspace are handled inside Camera (sent over socket)
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
             const key = e.key;
 
-            // Language selection (keys 1–8)
             if (KEY_TO_CODE[key]) {
                 setSelectedLang(KEY_TO_CODE[key]);
                 return;
             }
 
-            // Speak (Space)
             if (key === " ") {
                 e.preventDefault();
                 const textToSpeak = translation || cameraState.word;
@@ -158,26 +156,22 @@ export default function Sign2Text() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [translation, cameraState.word, selectedLang]);
 
-    // ── Handlers ──────────────────────────────────────────────────
-    const handleModeToggle      = (m) => setIsDynamic(m === "dynamic");
-    const handleToggleMainMode  = (m) => setMode(m);
-    const handleStateUpdate     = useCallback((s) => setCameraState(s), []);
-    const handleLanguageChange  = (code) => setSelectedLang(code);
+    const handleModeToggle = (m) => setIsDynamic(m === "dynamic");
+    const handleToggleMainMode = (m) => setMode(m);
+    const handleStateUpdate = useCallback((s) => setCameraState(s), []);
+    const handleLanguageChange = (code) => setSelectedLang(code);
 
     const handleSpeak = () => {
         const textToSpeak = translation || cameraState.word;
         speakText(textToSpeak, selectedLang);
     };
 
-    // Derived display values
-    const langName        = CODE_TO_NAME[selectedLang] ?? "English";
-    const displayTranslation =
-        isTranslating ? "Translating…" : translation || "—";
+    const langName = CODE_TO_NAME[selectedLang] ?? "English";
+    const displayTranslation = isTranslating ? "Translating..." : translation || "—";
 
     return (
         <div className={styles.sign2text}>
             <div className={styles.horizontalContainer}>
-
                 {/* ── Left: Camera panel ─────────────────────────── */}
                 <div className={styles.camera}>
                     <div className={styles.cameraHeader}>
@@ -209,10 +203,6 @@ export default function Sign2Text() {
                         </div>
                     </div>
 
-                    {/*
-                      Pass socketRef so Sign2Text's keyboard shortcuts can share
-                      the same WebSocket connection as Camera's frame emitter.
-                    */}
                     <Camera
                         onStateUpdate={handleStateUpdate}
                         socketRef={socketRef}
@@ -221,8 +211,6 @@ export default function Sign2Text() {
 
                 {/* ── Right: Controls & output cards ─────────────── */}
                 <div className={styles.rightGrid}>
-
-                    {/* Mode selector */}
                     <div className={styles.mainModelSelection}>
                         <span>Select the Mode</span>
                         <div className={styles.mainModeBtnGroup}>
@@ -241,24 +229,19 @@ export default function Sign2Text() {
                         </div>
                     </div>
 
-                    {/* Language selector row */}
                     <div className={styles.languageTranslation}>
                         <LanguageSelector
                             selectedLanguage={selectedLang}
                             onLanguageChange={handleLanguageChange}
                         />
-                        {/* The "Translate" button forces an immediate re-translate */}
                         <button
                             className={styles.translateBtn}
-                            onClick={() => {
-                                // Clear debounce and run translation immediately
-                                clearTimeout(translateRef.current);
+                            onClick={async () => {
                                 if (cameraState.word && selectedLang !== "en") {
                                     setIsTranslating(true);
-                                    translateText(cameraState.word, selectedLang)
-                                        .then((r) => setTranslation(r))
-                                        .catch(() => setTranslation(cameraState.word))
-                                        .finally(() => setIsTranslating(false));
+                                    const res = await translateText(cameraState.word, selectedLang);
+                                    setTranslation(res);
+                                    setIsTranslating(false);
                                 }
                             }}
                         >
@@ -266,7 +249,6 @@ export default function Sign2Text() {
                         </button>
                     </div>
 
-                    {/* Word card */}
                     <div className={styles.statCard}>
                         <span className={styles.statLabel}>Word</span>
                         <span className={`${styles.statValue} ${styles.word}`}>
@@ -274,7 +256,6 @@ export default function Sign2Text() {
                         </span>
                     </div>
 
-                    {/* Translation card — lang pill reflects selected language */}
                     <div className={styles.statCard}>
                         <div className={styles.transHeader}>
                             <span className={styles.statLabel}>Translation</span>
@@ -289,7 +270,6 @@ export default function Sign2Text() {
                         </span>
                     </div>
 
-                    {/* Speak button */}
                     <div className={styles.speakButton}>
                         <button
                             className={styles.speakBtn}
@@ -300,12 +280,10 @@ export default function Sign2Text() {
                         </button>
                     </div>
 
-                    {/* Gloss box */}
                     <div className={styles.glossBox}>
                         <h3>Gloss:</h3>
                         <p>Gloss will appear here.</p>
                     </div>
-
                 </div>
             </div>
         </div>
