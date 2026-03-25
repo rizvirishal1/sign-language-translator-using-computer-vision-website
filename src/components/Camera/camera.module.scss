@@ -32,13 +32,84 @@ $radius-sm:    8px;
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 10px 14px;
+  min-height: 52px;
+  flex-wrap: wrap;
 }
 
-.title {
-  font-size: 1.05rem;
+// ── Static / Dynamic toggle buttons ──────────────────────────────
+.modeBtnGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.staticBtn,
+.dynamicBtn {
+  background-color: transparent;
+  color: $offline;
+  border: 2px solid $offline;
+  padding: 6px 14px;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: $text-primary;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    background-color: $online;
+    border-color: $online;
+    box-shadow: 0 0 10px rgba($online, 0.45);
+    color: #fff;
+  }
+}
+
+.staticBtnSelected,
+.dynamicBtnSelected {
+  background-color: $online;
+  border: 2px solid $online;
+  box-shadow: 0 0 10px rgba($online, 0.45);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+// ── StatusBar wrapper ─────────────────────────────────────────────
+.ringStatusBar {
+  display: flex;
+  align-items: center;
+}
+
+// ── Word/letter & Confidence labels ──────────────────────────────
+.headerLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+// ── FPS counter ───────────────────────────────────────────────────
+.fpsCounter {
+  margin-left: auto;   // push FPS + badge to the right
+
+  p {
+    margin: 0;
+    font-size: 1.6rem;
+    font-family: "Micro 5", "Courier New", monospace;
+    color: $accent;
+    line-height: 1;
+  }
 }
 
 .badge {
@@ -46,6 +117,7 @@ $radius-sm:    8px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .online {

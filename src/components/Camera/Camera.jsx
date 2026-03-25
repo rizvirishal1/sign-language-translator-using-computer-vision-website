@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
+import StatusBar from "../../components/StatusBar/StatusBar.jsx";
 import styles from "./camera.module.scss";
 
 const FLASK_BASE   = "http://localhost:5000";
@@ -20,15 +21,26 @@ const FRAME_RATE_MS = 100;
  *   socketRef      – React ref passed in from Sign2Text so the parent can also
  *                    emit control events (clear / backspace) when needed.
  *                    If omitted, Camera manages its own internal socket ref.
+ *   isDynamic      – bool   – controls Dynamic mode StatusBar visibility
+ *   mode           – string – "mode A" shows static/dynamic toggle
+ *   fps            – number – FPS value to display
+ *   onModeToggle   – (mode: "static"|"dynamic") => void
  */
-export default function Camera({ onStateUpdate, socketRef: externalSocketRef }) {
+export default function Camera({
+    onStateUpdate,
+    socketRef: externalSocketRef,
+    isDynamic = false,
+    mode = "mode A",
+    fps = 0,
+    onModeToggle,
+}) {
     const [state, setState] = useState({
         letter:     "",
         confidence: 0,
         word:       "",
     });
 
-    const [connected, setConnected] = useState(false);
+    const [connected, setConnected]     = useState(false);
     const videoRef          = useRef(null);
     const canvasRef         = useRef(null);
     const internalSocketRef = useRef(null);
@@ -106,8 +118,38 @@ export default function Camera({ onStateUpdate, socketRef: externalSocketRef }) 
             {/* Hidden canvas used for frame capture */}
             <canvas ref={canvasRef} width="640" height="480" style={{ display: "none" }} />
 
+            {/* ── Header (replaces old .title span) ── */}
             <div className={styles.header}>
-                <span className={styles.title}>Sign Language Recognition</span>
+                {mode === "mode A" && (
+                    <div className={styles.modeBtnGroup}>
+                        <button
+                            className={`${styles.staticBtn} ${!isDynamic ? styles.staticBtnSelected : ""}`}
+                            onClick={() => onModeToggle?.("static")}
+                        >
+                            Static
+                        </button>
+                        <button
+                            className={`${styles.dynamicBtn} ${isDynamic ? styles.dynamicBtnSelected : ""}`}
+                            onClick={() => onModeToggle?.("dynamic")}
+                        >
+                            Dynamic
+                        </button>
+                    </div>
+                )}
+
+                {isDynamic && (
+                    <div className={styles.ringStatusBar}>
+                        <StatusBar />
+                    </div>
+                )}
+
+                <span className={styles.headerLabel}>Word/letter</span>
+                <span className={styles.headerLabel}>Confidence</span>
+
+                <div className={styles.fpsCounter}>
+                    <p>{fps} FPS</p>
+                </div>
+
                 <span className={`${styles.badge} ${connected ? styles.online : styles.offline}`}>
                     {connected ? "● Live API" : "○ API Offline"}
                 </span>

@@ -2,7 +2,6 @@ import Camera from "../../components/Camera/Camera.jsx";
 import LanguageSelector, { LANGUAGES } from "../../components/LanguageSelector/TranslateBtn.jsx";
 import { SpeakerWaveIcon } from "@heroicons/react/24/solid";
 import { useState, useEffect, useRef, useCallback } from "react";
-import StatusBar from "../../components/StatusBar/StatusBar.jsx";
 import styles from "./sign2text.module.scss";
 
 // ── Build lookup maps from the LANGUAGES registry ─────────────────
@@ -11,7 +10,7 @@ const CODE_TO_NAME = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.name]));
 const CODE_TO_TTS = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.ttsLang]));
 
 const GT_CODE_MAP = {
-    zh: "zh-CN", 
+    zh: "zh-CN",
 };
 
 /**
@@ -174,38 +173,13 @@ export default function Sign2Text() {
             <div className={styles.horizontalContainer}>
                 {/* ── Left: Camera panel ─────────────────────────── */}
                 <div className={styles.camera}>
-                    <div className={styles.cameraHeader}>
-                        {mode === "mode A" && (
-                            <div className={styles.modeBtnGrup}>
-                                <button
-                                    className={`${styles.staticBtn} ${!isDynamic ? styles.staticBtnSelected : ""}`}
-                                    onClick={() => handleModeToggle("static")}
-                                >
-                                    Static
-                                </button>
-                                <button
-                                    className={`${styles.dynamicBtn} ${isDynamic ? styles.dynamicBtnSelected : ""}`}
-                                    onClick={() => handleModeToggle("dynamic")}
-                                >
-                                    Dynamic
-                                </button>
-                            </div>
-                        )}
-                        {isDynamic && (
-                            <div className={styles.ringStatusBar}>
-                                <StatusBar />
-                            </div>
-                        )}
-                        <span>Word/letter</span>
-                        <span>Confidence</span>
-                        <div className={styles.fpsCounter}>
-                            <p>{fps} FPS</p>
-                        </div>
-                    </div>
-
                     <Camera
                         onStateUpdate={handleStateUpdate}
                         socketRef={socketRef}
+                        isDynamic={isDynamic}
+                        mode={mode}
+                        fps={fps}
+                        onModeToggle={handleModeToggle}
                     />
                 </div>
 
