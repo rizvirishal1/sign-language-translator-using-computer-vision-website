@@ -5,9 +5,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./sign2text.module.scss";
 
 // ── Build lookup maps from the LANGUAGES registry ─────────────────
-const KEY_TO_CODE = Object.fromEntries(LANGUAGES.map((l) => [l.key, l.code]));
+const KEY_TO_CODE  = Object.fromEntries(LANGUAGES.map((l) => [l.key, l.code]));
 const CODE_TO_NAME = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.name]));
-const CODE_TO_TTS = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.ttsLang]));
+const CODE_TO_TTS  = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.ttsLang]));
 
 const GT_CODE_MAP = {
     zh: "zh-CN",
@@ -39,7 +39,6 @@ async function translateText(word, targetCode) {
     }
 
     // --- Attempt 2: MyMemory API (Secondary Fallback) ---
-    // Excellent for Malayalam (ml), Tamil (ta), Hindi (hi), etc.
     try {
         const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|${targetCode}`;
         const res = await fetch(myMemoryUrl);
@@ -54,55 +53,36 @@ async function translateText(word, targetCode) {
         console.warn("[MyMemory Error]", err);
     }
 
-    return word; // Ultimate fallback: return original English word
+    return word;
 }
 
 // ── Web Speech API TTS helper ──────────────────────────────────────
 function speakText(text, langCode) {
     if (!text || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = CODE_TO_TTS[langCode] ?? "en-US";
-    utt.rate = 0.95;
-    utt.pitch = 1.0;
+    const utt  = new SpeechSynthesisUtterance(text);
+    utt.lang   = CODE_TO_TTS[langCode] ?? "en-US";
+    utt.rate   = 0.95;
+    utt.pitch  = 1.0;
     window.speechSynthesis.speak(utt);
 }
 
 export default function Sign2Text() {
-    const [isDynamic, setIsDynamic] = useState(false);
-    const [mode, setMode] = useState("mode A");
-    const [fps, setFps] = useState(0);
-    const [selectedLang, setSelectedLang] = useState("en");
-    const [translation, setTranslation] = useState("");
+    const [isDynamic, setIsDynamic]         = useState(false);
+    const [mode, setMode]                   = useState("mode A");
+    const [fps, setFps]                     = useState(0);          // real backend FPS
+    const [selectedLang, setSelectedLang]   = useState("en");
+    const [translation, setTranslation]     = useState("");
     const [isTranslating, setIsTranslating] = useState(false);
 
     const [cameraState, setCameraState] = useState({
-        letter: "",
+        letter:     "",
         confidence: 0,
-        word: "",
+        word:       "",
     });
 
-    const socketRef = useRef(null);
-    const requestRef = useRef();
-    const frameCount = useRef(0);
-    const lastTime = useRef(performance.now());
+    const socketRef    = useRef(null);
     const translateRef = useRef(null);
-
-    // ── FPS counter ──────────────────────────────────────────────
-    useEffect(() => {
-        const tick = () => {
-            const now = performance.now();
-            frameCount.current += 1;
-            if (now - lastTime.current >= 1000) {
-                setFps(frameCount.current);
-                frameCount.current = 0;
-                lastTime.current = now;
-            }
-            requestRef.current = requestAnimationFrame(tick);
-        };
-        requestRef.current = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(requestRef.current);
-    }, []);
 
     // ── Auto-translate Logic ─────────────────────────────────────
     useEffect(() => {
@@ -120,7 +100,6 @@ export default function Sign2Text() {
             return;
         }
 
-        // Debounce: Wait 400ms after user stops "signing" to translate
         clearTimeout(translateRef.current);
         setIsTranslating(true);
 
@@ -155,9 +134,32 @@ export default function Sign2Text() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [translation, cameraState.word, selectedLang]);
 
-    const handleModeToggle = (m) => setIsDynamic(m === "dynamic");
-    const handleToggleMainMode = (m) => setMode(m);
-    const handleStateUpdate = useCallback((s) => setCameraState(s), []);
+    // ── Mode toggle handlers — also emit set_mode to backend ─────
+    const handleModeToggle = (m) => {
+        setIsDynamic(m === "dynamic");
+        const backendMode = m === "dynamic" ? "dynamic_a" : "static";
+        socketRef.current?.emit("control", { action: "set_mode", mode: backendMode });
+    };
+
+    const handleToggleMainMode = (m) => {
+        setMode(m);
+        if (m === "mode B") {
+            // Mode B is always dynamic — no static toggle
+            setIsDynamic(true);
+            socketRef.current?.emit("control", { action: "set_mode", mode: "dynamic_b" });
+        } else {
+            // Returning to Mode A — default back to static
+            setIsDynamic(false);
+            socketRef.current?.emit("control", { action: "set_mode", mode: "static" });
+        }
+    };
+
+    // ── Receive state from Camera (includes real fps from backend) ─
+    const handleStateUpdate = useCallback((s) => {
+        setCameraState(s);
+        if (s.fps !== undefined) setFps(s.fps);
+    }, []);
+
     const handleLanguageChange = (code) => setSelectedLang(code);
 
     const handleSpeak = () => {
@@ -165,7 +167,7 @@ export default function Sign2Text() {
         speakText(textToSpeak, selectedLang);
     };
 
-    const langName = CODE_TO_NAME[selectedLang] ?? "English";
+    const langName          = CODE_TO_NAME[selectedLang] ?? "English";
     const displayTranslation = isTranslating ? "Translating..." : translation || "—";
 
     return (
