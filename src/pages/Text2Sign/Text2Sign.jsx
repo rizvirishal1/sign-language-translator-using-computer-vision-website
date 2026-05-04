@@ -109,7 +109,7 @@ const signDictionary = {
     'YES': 'webm'
 };
 
-const wordsToExclude = ['A', 
+const wordsToExclude = ['A',
     'AN',
     'AND',
     'ARE',
@@ -173,65 +173,65 @@ export default function Text2Sign() {
     };
 
     const handleTranslate = () => {
-    if (!transcript.trim()) return;
-    setWordsArray([]); // Clear current
+        if (!transcript.trim()) return;
+        setWordsArray([]); // Clear current
 
-    let tempTranscript = transcript.toUpperCase().replace(/[.,!?]/g, '').trim();
-    // Replace anything that is NOT a letter (a-z, A-Z) or a whitespace (\s) with an empty string
-    tempTranscript = tempTranscript.replace(/[^a-zA-Z\s]/g, "");
+        let tempTranscript = transcript.toUpperCase().replace(/[.,!?]/g, '').trim();
+        // Replace anything that is NOT a letter (a-z, A-Z) or a whitespace (\s) with an empty string
+        tempTranscript = tempTranscript.replace(/[^a-zA-Z\s]/g, "");
 
-    // 2. Split the string, filter out the unwanted words, and join it back
-    tempTranscript = tempTranscript
-  .split(/\s+/) // Splits the sentence into an array of individual words
-  .filter(word => !wordsToExclude.includes(word.toUpperCase())) // Keeps only the words NOT in your list
-  .join(" "); // Glues the remaining words back together with a single space
+        // 2. Split the string, filter out the unwanted words, and join it back
+        tempTranscript = tempTranscript
+            .split(/\s+/) // Splits the sentence into an array of individual words
+            .filter(word => !wordsToExclude.includes(word.toUpperCase())) // Keeps only the words NOT in your list
+            .join(" "); // Glues the remaining words back together with a single space
 
-    const playlist = [];
+        const playlist = [];
 
-    // 1. Get all dictionary keys and sort by length (descending) 
-    // This ensures "HOW ARE YOU" matches before "HOW"
-    const phraseKeys = Object.keys(signDictionary)
-        .filter(key => key.includes(' '))
-        .sort((a, b) => b.length - a.length);
+        // 1. Get all dictionary keys and sort by length (descending) 
+        // This ensures "HOW ARE YOU" matches before "HOW"
+        const phraseKeys = Object.keys(signDictionary)
+            .filter(key => key.includes(' '))
+            .sort((a, b) => b.length - a.length);
 
-    // 2. Identify phrases in the string
-    // We split by spaces but we need to check if consecutive words form a phrase
-    const words = tempTranscript.split(/\s+/).filter(Boolean);
-    
-    for (let i = 0; i < words.length; i++) {
-        let foundPhrase = false;
+        // 2. Identify phrases in the string
+        // We split by spaces but we need to check if consecutive words form a phrase
+        const words = tempTranscript.split(/\s+/).filter(Boolean);
 
-        // Look ahead for potential multi-word phrases
-        for (const phrase of phraseKeys) {
-            const phraseWords = phrase.split(' ');
-            const lookAhead = words.slice(i, i + phraseWords.length).join(' ');
+        for (let i = 0; i < words.length; i++) {
+            let foundPhrase = false;
 
-            if (lookAhead === phrase) {
-                playlist.push({ text: phrase, type: signDictionary[phrase] });
-                i += phraseWords.length - 1; // Skip the words we just matched
-                foundPhrase = true;
-                break;
+            // Look ahead for potential multi-word phrases
+            for (const phrase of phraseKeys) {
+                const phraseWords = phrase.split(' ');
+                const lookAhead = words.slice(i, i + phraseWords.length).join(' ');
+
+                if (lookAhead === phrase) {
+                    playlist.push({ text: phrase, type: signDictionary[phrase] });
+                    i += phraseWords.length - 1; // Skip the words we just matched
+                    foundPhrase = true;
+                    break;
+                }
             }
-        }
 
-        if (!foundPhrase) {
-            const word = words[i];
-            // 3. Check for single word match
-            if (signDictionary[word]) {
-                playlist.push({ text: word, type: signDictionary[word] });
-            } else {
-                // 4. Fallback to fingerspelling
-                for (const letter of word.split('')) {
-                    playlist.push({ text: letter, type: signDictionary[letter] || 'webp' });
+            if (!foundPhrase) {
+                const word = words[i];
+                // 3. Check for single word match
+                if (signDictionary[word]) {
+                    playlist.push({ text: word, type: signDictionary[word] });
+                } else {
+                    // 4. Fallback to fingerspelling
+                    for (const letter of word.split('')) {
+                        playlist.push({ text: letter, type: signDictionary[letter] || 'webp' });
+                    }
                 }
             }
         }
-    }
 
-    setWordsArray(playlist);
-    setCurrentIndex(0);
-    setFade(true); // Trigger fade in for first item
-};
+        setWordsArray(playlist);
+        setCurrentIndex(0);
+        setFade(true); // Trigger fade in for first item
+    };
 
     // Control the transition logic
     useEffect(() => {

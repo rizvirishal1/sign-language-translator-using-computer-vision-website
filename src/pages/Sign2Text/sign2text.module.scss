@@ -1,11 +1,11 @@
 // ── Shared card tokens (mirrors Camera's palette) ──────────────────
-$bg-card:      #13161e;
-$border:       #2a2e3d;
-$bg-card-alt:  #1a1d27;
+$bg-card: #13161e;
+$border: #2a2e3d;
+$bg-card-alt: #1a1d27;
 $text-primary: #e8eaf0;
-$text-muted:   #6b7280;
-$accent:       #6c63ff;
-$radius:       12px;
+$text-muted: #6b7280;
+$accent: #6c63ff;
+$radius: 12px;
 
 // ── Layout ────────────────────────────────────────────────────────
 .sign2text {
@@ -15,25 +15,16 @@ $radius:       12px;
 
 .horizontalContainer {
     display: flex;
-    gap: 20px;
+    gap: 30px;
 }
 
 // ── Camera panel (left column) ────────────────────────────────────
-// The header (mode toggle, FPS, status) is now owned by Camera itself.
-.camera {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    width: 50vw;
-    background-color: white;
-    border-radius: 20px;
-    position: relative;
-}
+
 
 // ── Right grid ────────────────────────────────────────────────────
 .rightGrid {
     display: flex;
+    width: 30vw;
     flex-direction: column;
     gap: 12px;
     flex: 1;
@@ -190,6 +181,13 @@ $radius:       12px;
 
 // ── Animations ────────────────────────────────────────────────────
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.45; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.45;
+    }
 }

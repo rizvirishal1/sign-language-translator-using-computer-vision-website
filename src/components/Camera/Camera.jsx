@@ -3,7 +3,7 @@ import io from "socket.io-client";
 import StatusBar from "../../components/StatusBar/StatusBar.jsx";
 import styles from "./camera.module.scss";
 
-const FLASK_BASE    = "http://localhost:5000";
+const FLASK_BASE = "http://localhost:5000";
 const FRAME_RATE_MS = 100;
 
 /**
@@ -22,21 +22,21 @@ export default function Camera({
     onStateUpdate,
     socketRef: externalSocketRef,
     isDynamic = false,
-    mode      = "mode A",
-    fps       = 0,
+    mode = "mode A",
+    fps = 0,
     onModeToggle,
 }) {
     const [state, setState] = useState({
-        letter:       "",
-        confidence:   0,
-        word:         "",
-        buffer_fill:  0,
+        letter: "",
+        confidence: 0,
+        word: "",
+        buffer_fill: 0,
         buffer_total: 0,
     });
 
     const [connected, setConnected] = useState(false);
-    const videoRef          = useRef(null);
-    const canvasRef         = useRef(null);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
     const internalSocketRef = useRef(null);
 
     // Use the externally injected ref if provided
@@ -45,7 +45,7 @@ export default function Camera({
     useEffect(() => {
         // ── Socket setup ──
         socketRef.current = io(FLASK_BASE);
-        socketRef.current.on("connect",    () => setConnected(true));
+        socketRef.current.on("connect", () => setConnected(true));
         socketRef.current.on("disconnect", () => setConnected(false));
         socketRef.current.on("state_update", (data) => {
             setState(data);
@@ -63,11 +63,11 @@ export default function Camera({
         // ── Frame capture loop ──
         const frameInterval = setInterval(() => {
             if (
-                videoRef.current  &&
+                videoRef.current &&
                 canvasRef.current &&
                 socketRef.current?.connected
             ) {
-                const canvas  = canvasRef.current;
+                const canvas = canvasRef.current;
                 const context = canvas.getContext("2d");
                 context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
                 const imageDataUrl = canvas.toDataURL("image/jpeg", 0.6);
@@ -104,7 +104,7 @@ export default function Camera({
     const confidencePct = Math.round((state.confidence || 0) * 100);
     const barColor =
         confidencePct >= 95 ? "#00dc50" :
-        confidencePct >= 70 ? "#ffd200" : "#dc3c00";
+            confidencePct >= 70 ? "#ffd200" : "#dc3c00";
 
     return (
         <div className={styles.wrapper}>

@@ -5,9 +5,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./sign2text.module.scss";
 
 // ── Build lookup maps from the LANGUAGES registry ─────────────────
-const KEY_TO_CODE  = Object.fromEntries(LANGUAGES.map((l) => [l.key, l.code]));
+const KEY_TO_CODE = Object.fromEntries(LANGUAGES.map((l) => [l.key, l.code]));
 const CODE_TO_NAME = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.name]));
-const CODE_TO_TTS  = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.ttsLang]));
+const CODE_TO_TTS = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.ttsLang]));
 
 const GT_CODE_MAP = {
     zh: "zh-CN",
@@ -60,28 +60,28 @@ async function translateText(word, targetCode) {
 function speakText(text, langCode) {
     if (!text || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const utt  = new SpeechSynthesisUtterance(text);
-    utt.lang   = CODE_TO_TTS[langCode] ?? "en-US";
-    utt.rate   = 0.95;
-    utt.pitch  = 1.0;
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = CODE_TO_TTS[langCode] ?? "en-US";
+    utt.rate = 0.95;
+    utt.pitch = 1.0;
     window.speechSynthesis.speak(utt);
 }
 
 export default function Sign2Text() {
-    const [isDynamic, setIsDynamic]         = useState(false);
-    const [mode, setMode]                   = useState("mode A");
-    const [fps, setFps]                     = useState(0);          // real backend FPS
-    const [selectedLang, setSelectedLang]   = useState("en");
-    const [translation, setTranslation]     = useState("");
+    const [isDynamic, setIsDynamic] = useState(false);
+    const [mode, setMode] = useState("mode A");
+    const [fps, setFps] = useState(0);          // real backend FPS
+    const [selectedLang, setSelectedLang] = useState("en");
+    const [translation, setTranslation] = useState("");
     const [isTranslating, setIsTranslating] = useState(false);
 
     const [cameraState, setCameraState] = useState({
-        letter:     "",
+        letter: "",
         confidence: 0,
-        word:       "",
+        word: "",
     });
 
-    const socketRef    = useRef(null);
+    const socketRef = useRef(null);
     const translateRef = useRef(null);
 
     // ── Auto-translate Logic ─────────────────────────────────────
@@ -167,23 +167,22 @@ export default function Sign2Text() {
         speakText(textToSpeak, selectedLang);
     };
 
-    const langName          = CODE_TO_NAME[selectedLang] ?? "English";
+    const langName = CODE_TO_NAME[selectedLang] ?? "English";
     const displayTranslation = isTranslating ? "Translating..." : translation || "—";
 
     return (
         <div className={styles.sign2text}>
             <div className={styles.horizontalContainer}>
                 {/* ── Left: Camera panel ─────────────────────────── */}
-                <div className={styles.camera}>
-                    <Camera
-                        onStateUpdate={handleStateUpdate}
-                        socketRef={socketRef}
-                        isDynamic={isDynamic}
-                        mode={mode}
-                        fps={fps}
-                        onModeToggle={handleModeToggle}
-                    />
-                </div>
+                <Camera
+                    onStateUpdate={handleStateUpdate}
+                    socketRef={socketRef}
+                    isDynamic={isDynamic}
+                    mode={mode}
+                    fps={fps}
+                    onModeToggle={handleModeToggle}
+                />
+
 
                 {/* ── Right: Controls & output cards ─────────────── */}
                 <div className={styles.rightGrid}>
@@ -238,9 +237,8 @@ export default function Sign2Text() {
                             <span className={styles.langPill}>{langName}</span>
                         </div>
                         <span
-                            className={`${styles.statValue} ${styles.translation} ${
-                                isTranslating ? styles.translating : ""
-                            }`}
+                            className={`${styles.statValue} ${styles.translation} ${isTranslating ? styles.translating : ""
+                                }`}
                         >
                             {displayTranslation}
                         </span>

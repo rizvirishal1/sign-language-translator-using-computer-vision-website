@@ -1,22 +1,22 @@
 // camera.module.scss
 
-$bg-deep:      #0d0f14;
-$bg-card:      #13161e;
-$bg-card-alt:  #1a1d27;
-$border:       #2a2e3d;
+$bg-deep: #0d0f14;
+$bg-card: #13161e;
+$bg-card-alt: #1a1d27;
+$border: #2a2e3d;
 $text-primary: #e8eaf0;
-$text-muted:   #6b7280;
-$accent:       #6c63ff;
-$online:       #22c55e;
-$offline:      #ef4444;
-$radius:       12px;
-$radius-sm:    8px;
+$text-muted: #6b7280;
+$accent: #6c63ff;
+$online: #22c55e;
+$offline: #ef4444;
+$radius: 12px;
+$radius-sm: 8px;
 
 .wrapper {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: 100%;
+  width: 45vw;
   max-width: 720px;
   margin: 0 auto;
   padding: 20px;
@@ -101,7 +101,7 @@ $radius-sm:    8px;
 
 // ── FPS counter ───────────────────────────────────────────────────
 .fpsCounter {
-  margin-left: auto;   // push FPS + badge to the right
+  margin-left: auto; // push FPS + badge to the right
 
   p {
     margin: 0;
@@ -171,7 +171,9 @@ $radius-sm:    8px;
   text-align: center;
   z-index: 1;
 
-  p { margin: 0; }
+  p {
+    margin: 0;
+  }
 }
 
 .hint {
@@ -190,7 +192,9 @@ $radius-sm:    8px;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // ── Stats Panel (Letter + Confidence only) ────────────────────────
@@ -285,11 +289,20 @@ $radius-sm:    8px;
   font-size: 0.7rem;
   color: $text-muted;
 
-  span { white-space: nowrap; }
+  span {
+    white-space: nowrap;
+  }
 }
 
 // ── Animations ────────────────────────────────────────────────────
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.45; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
 }
